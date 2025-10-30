@@ -1,7 +1,9 @@
 import { Router } from "express";
-import { validatePromoController } from "../controllers/promo.controller";
+import { createPromoController, validatePromoController } from "../controllers/promo.controller";
 
 const PromoRouter = Router()
+    .post('/create', createPromoController)
     .post('/validate', validatePromoController);
+
 
 export default PromoRouter;
