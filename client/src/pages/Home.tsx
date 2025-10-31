@@ -1,19 +1,24 @@
 import ExperienceCard from "@/components/ExperienceCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useAppSelector } from "@/hooks/useRedux";
 import { useGetAllExperiencesQuery } from "@/services/api/experienceApi";
-import type { ApiResponse } from "@/types/api.types";
-import type { AllExperience } from "@/types/experience.types";
-import { useEffect, useState } from "react";
 
 
 
 const Home = () => {
     // const [experiences, setExperiences] = useState<AllExperience[]>([]);
-    const { data: AllExperiencesResponse, isLoading, error } = useGetAllExperiencesQuery();
+    const searchTerm = useAppSelector((state) => state.search.searchTerm);
+    const debounce = useDebounce<string>(searchTerm, 300);
+
+    // 🔥 If there's no search, call the endpoint without params
+    const { data: AllExperiencesResponse, isLoading, error } = useGetAllExperiencesQuery(
+        debounce.trim().length >= 2 ? { search: debounce } : undefined
+    );
     const experiences = AllExperiencesResponse?.data;
     return (
-        <div className="p-6">
-            <h1 className="text-2xl font-semibold mb-6">Explore Experiences</h1>
+        <div className="">
+            {/* <h1 className="text-2xl font-semibold mb-6">Explore Experiences</h1> */}
 
             <div
                 className="
@@ -31,6 +36,11 @@ const Home = () => {
                 {
                     !isLoading && !error && !experiences?.length && (
                         <p>No experiences found</p>
+                    )
+                }
+                {
+                    !isLoading && error && (
+                        <p>Something went wrong</p>
                     )
                 }
                 {!isLoading && !error && experiences?.length && experiences?.map((exp) => (

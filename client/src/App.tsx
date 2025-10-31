@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Outlet, createBrowserRouter, RouterProvider } from "react-router-dom"
 import Navbar from "./components/Navbar"
 import Home from "./pages/Home"
 import Details from "./pages/Details"
@@ -6,28 +6,46 @@ import Checkout from "./pages/Checkout"
 
 const Layout = () => {
   return (
-    <div className="max-h-screen max-w-screen w-full h-full">
+    <div className="min-h-screen max-w-screen w-full h-full flex flex-col">
       <Navbar />
-      <div className="max-w-7xl p-2 mx-auto w-full h-full">
-
-      <Outlet />
+      <div className="max-w-7xl flex-1 md:p-6 p-3 mx-auto w-full h-full">
+        <Outlet />
       </div>
     </div>
   )
 }
 
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Layout />,
+    handle: { breadcrumb: "Home" },
+    children: [
+      {
+        index: true,
+        element: <Home />,
+      },
+      {
+        path: "details/:id",
+        element: <Details />,
+        handle: {
+          breadcrumb: ({ params }: any) => `Details: ${params.id}`,
+        },
+      },
+      {
+        path: "checkout",
+        element: <Checkout />,
+        handle: { breadcrumb: "Checkout" },
+      },
+    ],
+  },
+]);
+
 function App() {
   return (
     <>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="/details/:id" element={<Details />} />
-            <Route path="/checkout" element={<Checkout />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <RouterProvider router={router} />;
     </>
   )
 }

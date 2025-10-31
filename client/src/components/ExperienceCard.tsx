@@ -20,7 +20,7 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
   thumbnail,
 }) => {
   const navigate = useNavigate();
-  console.log(thumbnail.slice(0, thumbnail.lastIndexOf('=')) + '=300')
+
 
   return (
     <div className="bg-card border border-border rounded-md shadow-sm overflow-hidden flex flex-col transition-all hover:shadow-md hover:scale-[1.01] duration-200">
