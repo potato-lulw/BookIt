@@ -18,7 +18,7 @@ export const generateSlotsForNextFiveDays = async () => {
 
   // 2️⃣ Generate new slots for the next 5 days
   const experiences = await Experience.find();
-  console.log(chalk.magenta(`⚙️ Found ${experiences.length} experiences.`));
+  console.log(chalk.magenta(`⚙️  Found ${experiences.length} experiences.`));
 
   for (const exp of experiences) {
     for (let i = 0; i < 5; i++) {

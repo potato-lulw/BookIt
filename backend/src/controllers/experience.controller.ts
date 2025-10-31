@@ -5,31 +5,57 @@ import { BadRequestError, InternalServerError, NotFoundError } from "../utils/ap
 import { HTTP_STATUS_CODE } from "../config/http.config";
 import dayjs from "dayjs";
 import { BookingSlot } from "../models/bookingSlot.model";
+import Fuse from "fuse.js";
+
 
 
 export const getAllExperienceController = asyncHandler(async (req, res) => {
-    const experiences = await Experience.find(
-        {},
-        {
-            destinationName: 1,
-            placeName: 1,
-            description: 1,
-            price: 1,
-            images: 1,
-            thumbnail: 1,
-        }
-    ).sort({ createdAt: -1 });
+  const { search } = req.query as { search?: string };
+  const hasSearch = search && search.trim() !== "";
 
-    if (!experiences || experiences.length === 0) {
-        throw new NotFoundError("No experiences found");
+  // 🧩 Fetch all experiences once (we’ll fuzzy filter in memory)
+  const experiences = await Experience.find(
+    {},
+    {
+      destinationName: 1,
+      placeName: 1,
+      description: 1,
+      price: 1,
+      images: 1,
+      thumbnail: 1,
     }
+  ).sort({ createdAt: -1 });
 
-    return res.status(HTTP_STATUS_CODE.OK).json({
-        status: "success",
-        count: experiences.length,
-        data: experiences,
+  if (!experiences || experiences.length === 0) {
+    throw new NotFoundError("No experiences found");
+  }
+
+  // 🔍 If there's a search term, apply Fuse.js fuzzy search
+  let results = experiences;
+
+  if (hasSearch) {
+    const fuse = new Fuse(experiences, {
+      keys: ["destinationName", "placeName"],
+      threshold: 0.35, // lower = stricter, higher = fuzzier (0.0 - 1.0)
+      distance: 100, // how far in the text to allow matches
     });
+
+    results = fuse.search(search).map((res) => res.item);
+
+    if (results.length === 0) {
+      throw new NotFoundError(`No experiences found matching "${search}"`);
+    }
+  }
+
+  // 🧾 Send response
+  return res.status(HTTP_STATUS_CODE.OK).json({
+    status: "success",
+    count: results.length,
+    data: results,
+  });
 });
+
+
 
 export const getExpericenceByIdController = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -138,4 +164,7 @@ export const createExperienceController = asyncHandler(async (req: Request, res:
         throw new InternalServerError("Failed to create experience");
     }
 });
+
+
+
 
