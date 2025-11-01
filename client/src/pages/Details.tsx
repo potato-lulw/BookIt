@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Minus, Plus } from "lucide-react";
+import { useState } from "react";
+import { Minus, Plus } from "lucide-react";
 import Breadcrumbs from "@/components/Breadcrumb";
 import { useGetExperienceByIdQuery } from "@/services/api/experienceApi";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Carousel from "@/components/Carousel";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -18,10 +18,26 @@ const Details = () => {
   const [selectedDateIndex, setSelectedDateIndex] = useState<number>(0);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null)
   const [quantity, setQuantity] = useState<number>(1);
-
+  const navigate = useNavigate();
 
   if (isLoading) return <div>Loading...</div>;
   if (error || !details) return <div>Error loading experience details.</div>;
+
+  const handleCheckout = () => {
+    navigate('/checkout', {
+      state: {
+        name: details.experience.destinationName,
+        date: details.availability[selectedDateIndex].date,
+        time: details.availability[selectedDateIndex].slots.find((slot) => slot._id == selectedSlotId)?.time,
+        experienceId: id,
+        slotId: selectedSlotId,
+        quantity,
+        taxes: details.experience.price * quantity * 0.05,
+        subtotal: details.experience.price * quantity,
+        total: details.experience.price * quantity * 1.05,
+      }
+    })
+  }
 
   return (
     <div className="flex flex-col items-center w-full h-full overflow-hidden gap-2">
@@ -36,7 +52,7 @@ const Details = () => {
         <div className="relative lg:w-4/6 w-full flex flex-col justify-center items-center gap-4  overflow-hidden ">
           <Carousel images={images} duration={4000} />
 
-          <div >
+          <div className="w-full">
             <h1 className="text-xl md:text-2xl font-semibold mb-2">{details.experience.destinationName}</h1>
             <p className="text-gray-500 text-sm">{details.experience.description}</p>
           </div>
@@ -61,7 +77,7 @@ const Details = () => {
             <div className="flex flex-row gap-4 text-sm justify-start w-full items-center">
               {
                 details.availability[selectedDateIndex].slots.map((slot, index) => (
-                  <span onClick={() => setSelectedSlotId(slot._id)} className={`${selectedSlotId == slot._id ? "bg-primary" : "bg-background"} cursor-pointer border border-border rounded-sm p-2`} key={index}>{dayjs(slot.time, "HH:mm").format("h:mm A")} <span className="text-destructive">{slot.availableSlots} Left</span></span>
+                  <span onClick={() => {if (slot.isAvailable) setSelectedSlotId(slot._id)}} className={`${selectedSlotId == slot._id ? "bg-primary" : !slot.isAvailable ? "bg-background2 text-gray-500": ""} cursor-pointer border border-border rounded-sm p-2`} key={index}>{dayjs(slot.time, "HH:mm").format("h:mm A")} <span className="text-destructive">{slot.availableSlots} Left</span></span>
                 ))
               }
             </div>
@@ -87,23 +103,23 @@ const Details = () => {
             <div className="flex flex-row justify-between items-center">
               <span className="text-gray-500 text-xs">Qualtity</span>
               <span className="flex gap-2 items-center">
-                <Minus className={`${quantity == 1 ? "text-gray-200": ""} `} size={12} onClick={() => setQuantity((prev) => Math.max(1, prev - 1))} />
+                <Minus className={`${quantity == 1 ? "text-gray-200" : ""} `} size={12} onClick={() => setQuantity((prev) => Math.max(1, prev - 1))} />
                 {quantity}
-                <Plus size={12} onClick={() => setQuantity((prev) => Math.min(details.availability[selectedDateIndex].slots.find((slot) => slot._id === selectedSlotId)?.availableSlots ?? 0, prev + 1))} /></span>
+                <Plus size={12} onClick={() => setQuantity((prev) => Math.min(details.availability[selectedDateIndex].slots.find((slot) => slot._id === selectedSlotId)?.availableSlots ?? 1, prev + 1))} /></span>
             </div>
             <div className="flex flex-row justify-between items-center">
               <span className="text-gray-500 text-xs">Subtotal</span>
-              <span> ₹{ details.experience.price * quantity }</span>
+              <span> ₹{details.experience.price * quantity}</span>
             </div>
             <div className="flex flex-row justify-between items-center">
               <span className="text-gray-500 text-xs">Taxes 5%</span> { }
-              <span> ₹{ details.experience.price * quantity * 0.05 }</span>
+              <span> ₹{details.experience.price * quantity * 0.05}</span>
             </div>
             <div className="h-px bg-gray-300 w-full"></div>
             <div className="flex flex-row justify-between items-center font-medium text-base">
               <span className="">Total</span> ₹{details.experience.price * quantity * 1.05}
             </div>
-            <button disabled={!selectedSlotId} className="w-full bg-primary text-foreground py-2 rounded-md mt-4 disabled:opacity-50 disabled:cursor-not-allowed">Proceed to Book</button>
+            <button disabled={!selectedSlotId} onClick={handleCheckout} className="w-full bg-primary text-foreground py-2 rounded-md mt-4 disabled:opacity-50 disabled:cursor-not-allowed">Proceed to Book</button>
           </div>
         </div>
       </div>

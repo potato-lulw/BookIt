@@ -3,10 +3,11 @@ import Navbar from "./components/Navbar"
 import Home from "./pages/Home"
 import Details from "./pages/Details"
 import Checkout from "./pages/Checkout"
+import Success from "./pages/Success"
 
 const Layout = () => {
   return (
-    <div className="min-h-screen max-w-screen w-full h-full flex flex-col">
+    <div className="max-h-screen max-w-screen w-full h-screen flex flex-col">
       <Navbar />
       <div className="max-w-7xl flex-1 md:p-6 p-3 mx-auto w-full h-full">
         <Outlet />
@@ -38,6 +39,11 @@ const router = createBrowserRouter([
         element: <Checkout />,
         handle: { breadcrumb: "Checkout" },
       },
+      {
+        path: "booking-success",
+        element: <Success />,
+        handle: { breadcrumb: "Success" },
+      }
     ],
   },
 ]);
@@ -45,7 +51,7 @@ const router = createBrowserRouter([
 function App() {
   return (
     <>
-      <RouterProvider router={router} />;
+      <RouterProvider router={router} />
     </>
   )
 }
