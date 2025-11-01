@@ -3,6 +3,8 @@ import { Schema, model, Document, Types } from "mongoose";
 export interface IBooking extends Document {
     user: Types.ObjectId;
     experience: Types.ObjectId;
+    name: string;
+    email: string;
     slot: Types.ObjectId;
     quantity: number;
     promoUsed?: string;
@@ -15,6 +17,8 @@ export interface IBooking extends Document {
 const bookingSchema = new Schema<IBooking>(
     {
         user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        name: { type: String, required: true },
+        email: { type: String, required: true },
         experience: { type: Schema.Types.ObjectId, ref: "Experience", required: true },
         slot: { type: Schema.Types.ObjectId, ref: "BookingSlot", required: true },
         quantity: { type: Number, required: true, min: 1 },

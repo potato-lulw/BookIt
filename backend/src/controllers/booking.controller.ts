@@ -14,10 +14,10 @@ import dayjs from "dayjs";
 
 export const createBookingController = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { userId, experienceId, slotId, quantity, promoUsed } = req.body;
+    const { userId, name, email,  experienceId, slotId, quantity, promoUsed } = req.body;
 
     // 🧩 Validate required fields
-    if (!userId || !experienceId || !slotId || !quantity) {
+    if (!userId || !experienceId || !slotId || !quantity || !name || !email) {
       throw new BadRequestError("Missing required fields for booking");
     }
 
@@ -79,6 +79,8 @@ export const createBookingController = asyncHandler(
     const booking = await Booking.create({
       user: userId,
       experience: experienceId,
+      email,
+      name,
       slot: slotId,
       quantity,
       promoUsed: appliedPromo,
@@ -96,6 +98,8 @@ export const createBookingController = asyncHandler(
       message: "Booking confirmed successfully!",
       data: {
         bookingId: booking._id,
+        name: booking.name,
+        email: booking.email,
         experience: {
           id: experience._id,
           destinationName: experience.destinationName,
